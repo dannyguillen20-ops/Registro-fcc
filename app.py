@@ -1,143 +1,99 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime
 
 st.set_page_config(page_title="SPORT TIME", page_icon="⏱️", layout="wide")
 
-# --- ESTILOS CON COLOR ---
 st.markdown("""
 <style>
-   .stApp { background-color: #0e1117; }
-    h1 { color: #00FF88!important; text-align: center; }
-   .marcador { background: linear-gradient(90deg, #00c6ff, #0072ff); padding: 20px; border-radius: 15px; text-align: center; color: white; font-size: 28px; font-weight: bold; }
-   .equipo1 { background-color: #1e3a8a; padding: 15px; border-radius: 10px; }
-   .equipo2 { background-color: #991b1b; padding: 15px; border-radius: 10px; }
+h1{color:#00FF88!important; text-align:center}
+.marcador{background:linear-gradient(90deg,#00c6ff,#0072ff); padding:20px; border-radius:15px; text-align:center; color:white; font-size:26px; font-weight:bold; margin:15px 0}
 </style>
 """, unsafe_allow_html=True)
 
 st.title("⏱️ SPORT TIME")
-st.markdown("<p style='text-align:center; color:gray;'>Control Total de Retas - Tapachula</p>", unsafe_allow_html=True)
+st.caption("Raymundo Enríquez - Control Total")
 
-# --- ESTADO ---
-if 'goles_eq1' not in st.session_state:
-    st.session_state.goles_eq1 = [0]*10
-    st.session_state.faltas_eq1 = [0]*10
-    st.session_state.goles_eq2 = [0]*10
-    st.session_state.faltas_eq2 = [0]*10
-    st.session_state.tiempo = 0
-    st.session_state.tiempo_extra = 0
-    st.session_state.periodo = "Primer Tiempo"
+if 'g1' not in st.session_state:
+    st.session_state.g1=[0]*7
+    st.session_state.f1=[0]*7
+    st.session_state.g2=[0]*7
+    st.session_state.f2=[0]*7
 
-# --- CONFIGURACION SUPERIOR ---
-c1, c2, c3, c4 = st.columns(4)
+c1,c2,c3,c4 = st.columns(4)
 with c1:
-    deporte = st.selectbox("🏀 / ⚽ Deporte", ["Fútbol Soccer", "Básquetbol"])
+    deporte = st.selectbox("Deporte", ["Fútbol Soccer", "Básquetbol"])
 with c2:
-    periodo = st.selectbox("⏱️ Periodo", ["Primer Tiempo", "Segundo Tiempo", "Tiempo Extra", "Finalizado"], key="periodo_sel")
+    periodo = st.selectbox("Periodo", ["Primer Tiempo", "Segundo Tiempo", "Tiempo Extra", "Final"])
 with c3:
-    tiempo = st.number_input("Minuto Actual", 0, 120, st.session_state.tiempo)
-    st.session_state.tiempo = tiempo
+    minuto = st.number_input("Minuto", 0, 120, 0)
 with c4:
-    tiempo_extra = st.number_input("Tiempo Extra (+)", 0, 20, st.session_state.tiempo_extra)
-    st.session_state.tiempo_extra = tiempo_extra
+    extra = st.number_input("Extra +", 0, 20, 0)
 
-es_futbol = deporte == "Fútbol Soccer"
-num_jugadores = 7 if es_futbol else 5
-label_gol = "Goles" if es_futbol else "Puntos"
+is_fut = deporte == "Fútbol Soccer"
+num = 7 if is_fut else 5
+label = "Goles" if is_fut else "Puntos"
 
-c_ar1, c_ar2, c_ar3 = st.columns(3)
-with c_ar1:
-    arbitro1 = st.text_input("👨‍⚖️ Árbitro Central", "Raymundo")
-with c_ar2:
-    arbitro2 = st.text_input("🚩 Asistente 1 / Árbitro 2", "")
-with c_ar3:
-    cancha = st.text_input("📍 Cancha", "Raymundo Enríquez")
+c_a1,c_a2,c_a3 = st.columns(3)
+with c_a1:
+    arb1 = st.text_input("Árbitro Central", "Raymundo")
+with c_a2:
+    arb2 = st.text_input("Árbitro 2", "")
+with c_a3:
+    cancha = st.text_input("Cancha", "Raymundo Enríquez")
 
-st.divider()
-
-# --- EQUIPOS ---
 col1, col2 = st.columns(2)
 
-def dibujar_equipo(col, num_eq, nombre_default, color):
-    with col:
-        st.markdown(f"### {color} EQUIPO {num_eq}")
-        nombre_eq = st.text_input(f"Nombre Equipo {num_eq}", nombre_default, key=f"nom_eq{num_eq}")
+# EQUIPO 1
+with col1:
+    st.subheader("🔵 Equipo 1")
+    eq1_nom = st.text_input("Nombre Equipo 1", "Raymundo FC", key="eq1_nom")
+    for i in range(num):
+        with st.container(border=True):
+            nom = st.text_input(f"Jugador {i+1}", key=f"n1_{i}", placeholder=f"Jugador {i+1}", label_visibility="collapsed")
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                st.write(f"{label}: {st.session_state.g1[i]}")
+                if st.button(f"+ {label}", key=f"g1_{i}"):
+                    st.session_state.g1[i]+=1
+                    st.rerun()
+            with cc2:
+                st.write(f"Faltas: {st.session_state.f1[i]}")
+                if st.button("Falta +", key=f"f1_{i}"):
+                    st.session_state.f1[i]+=1
+                    st.rerun()
 
-        goles_key = st.session_state.goles_eq1 if num_eq==1 else st.session_state.goles_eq2
-        faltas_key = st.session_state.faltas_eq1 if num_eq==1 else st.session_state.faltas_eq2
+# EQUIPO 2
+with col2:
+    st.subheader("🔴 Equipo 2")
+    eq2_nom = st.text_input("Nombre Equipo 2", "Rival FC", key="eq2_nom")
+    for i in range(num):
+        with st.container(border=True):
+            nom = st.text_input(f"Jugador {i+1}", key=f"n2_{i}", placeholder=f"Jugador {i+1}", label_visibility="collapsed")
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                st.write(f"{label}: {st.session_state.g2[i]}")
+                if st.button(f"+ {label}", key=f"g2_{i}"):
+                    st.session_state.g2[i]+=1
+                    st.rerun()
+            with cc2:
+                st.write(f"Faltas: {st.session_state.f2[i]}")
+                if st.button("Falta +", key=f"f2_{i}"):
+                    st.session_state.f2[i]+=1
+                    st.rerun()
 
-        total_goles = 0
-        total_faltas = 0
-        jugadores_data = []
+t1 = sum(st.session_state.g1[:num])
+t2 = sum(st.session_state.g2[:num])
 
-        for i in range(num_jugadores):
-            with st.container(border=True):
-                c_n, c_g, c_f = st.columns([2,1,1])
-                with c_n:
-                    nom = st.text_input(f"Jugador {i+1}", key=f"eq{num_eq}_n{i}", placeholder=f"Jugador {i+1}", label_visibility="collapsed")
-                    if not nom: nom = f"Jugador {i+1}"
-                with c_g:
-                    st.caption(f"{label_gol}: {goles_key[i]}")
-                    if st.button(f"⚽ +{label_gol}", key=f"g_eq{num_eq}_{i}"):
-                        if num_eq==1: st.session_state.goles_eq1[i]+=1
-                        else: st.session_state.goles_eq2[i]+=1
-                        st.rerun()
-                    if st.button(f"-", key=f"gm_eq{num_eq}_{i}"):
-                        if num_eq==1 and st.session_state.goles_eq1[i]>0: st.session_state.goles_eq1[i]-=1
-                        if num_eq==2 and st.session_state.goles_eq2[i]>0: st.session_state.goles_eq2[i]-=1
-                        st.rerun()
-                with c_f:
-                    st.caption(f"Faltas: {faltas_key[i]}")
-                    if st.button("🟨 Falta", key=f"f_eq{num_eq}_{i}"):
-                        if num_eq==1: st.session_state.faltas_eq1[i]+=1
-                        else: st.session_state.faltas_eq2[i]+=1
-                        st.rerun()
+st.markdown(f"<div class='marcador'>{eq1_nom} {t1} - {t2} {eq2_nom} | {periodo} {minuto}' +{extra} | Cancha: {cancha} | Arb: {arb1}</div>", unsafe_allow_html=True)
 
-                total_goles += goles_key[i]
-                total_faltas += faltas_key[i]
-                jugadores_data.append(nom)
-
-        return nombre_eq, total_goles, total_faltas, jugadores_data
-
-eq1_nom, tot1, fal1, jug1 = dibujar_equipo(col1, 1, "Raymundo FC", "🔵")
-eq2_nom, tot2, fal2, jug2 = dibujar_equipo(col2, 2, "Rival FC", "🔴")
-
-st.divider()
-
-# --- MARCADOR CENTRAL ---
-st.markdown(f"<div class='marcador'>{eq1_nom} {tot1} - {tot2} {eq2_nom} | {periodo} {tiempo}' + {tiempo_extra}' | {cancha}</div>", unsafe_allow_html=True)
-
-st.write("")
-col_mid1, col_mid2, col_mid3 = st.columns(3)
-with col_mid1:
-    st.metric(f"{eq1_nom} - {label_gol}", tot1, f"Faltas: {fal1}")
-with col_mid2:
-    st.metric("Árbitros", arbitro1, arbitro2)
-with col_mid3:
-    st.metric(f"{eq2_nom} - {label_gol}", tot2, f"Faltas: {fal2}")
-
-# --- TABLA DETALLADA ---
-data = []
-for i in range(num_jugadores):
-    data.append({"Equipo": eq1_nom, "Jugador": jug1[i], label_gol: st.session_state.goles_eq1[i], "Faltas": st.session_state.faltas_eq1[i]})
-    data.append({"Equipo": eq2_nom, "Jugador": jug2[i], label_gol: st.session_state.goles_eq2[i], "Faltas": st.session_state.faltas_eq2[i]})
-
-df = pd.DataFrame(data)
-df = df.sort_values(by=label_gol, ascending=False)
-st.markdown(f"### 📊 Estadísticas Completas - {deporte}")
-st.dataframe(df, use_container_width=True, hide_index=True)
-
-if st.button("🏁 Finalizar Partido y Compartir", type="primary", use_container_width=True):
-    st.balloons()
-    st.success(f"PARTIDO FINALIZADO: {eq1_nom} {tot1}-{tot2} {eq2_nom} | Árbitro: {arbitro1}")
-    texto_whatsapp = f"SPORT TIME: {eq1_nom} {tot1}-{tot2} {eq2_nom} - {periodo} - Goleador: {df.iloc[0]['Jugador']}"
-    st.code(texto_whatsapp, language="text")
-    st.info("Copia ese texto y mándalo por WhatsApp a tus compas")
-
-if st.button("🔄 Reiniciar Todo el Partido", use_container_width=True):
-    st.session_state.goles_eq1 = [0]*10
-    st.session_state.faltas_eq1 = [0]*10
-    st.session_state.goles_eq2 = [0]*10
-    st.session_state.faltas_eq2 = [0]*10
-    st.session_state.tiempo = 0
-    st.rerun()
+b1,b2 = st.columns(2)
+with b1:
+    if st.button("🔄 Reiniciar Partido", use_container_width=True):
+        st.session_state.g1=[0]*7
+        st.session_state.f1=[0]*7
+        st.session_state.g2=[0]*7
+        st.session_state.f2=[0]*7
+        st.rerun()
+with b2:
+    if st.button("🏁 Finalizar Reta", type="primary", use_container_width=True):
+        st.balloons()
+        st.success(f"Final: {eq1_nom} {t1} - {t2} {eq2_nom}")
